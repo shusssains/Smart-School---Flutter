@@ -60,7 +60,7 @@ class _MedicalRecordspageState extends State<MedicalRecordspage>
           ),),
         centerTitle: true,
       ),
-      backgroundColor: Color(0xFF00008B),
+      //backgroundColor: Color(0xFF00008B),
       body: AnimatedBuilder(
         animation: _animationController,
         builder: (context, child) {
@@ -139,7 +139,7 @@ class _MedicalRecordspageState extends State<MedicalRecordspage>
                   ),
                 );
               },
-            ),
+            )
           );
         },
       ),

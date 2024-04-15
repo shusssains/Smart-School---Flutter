@@ -12,16 +12,16 @@ class _PaymentState extends State<Payment> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF00008B),
+        backgroundColor: const Color(0xFF00008B),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, color: Colors.white),
+            icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: () {
               // Implement your refresh functionality here
             },
@@ -58,12 +58,12 @@ class _PaymentState extends State<Payment> {
   Widget _buildPaymentCard(String term) {
     return Card(
       elevation: 4, // Adjust elevation as per your requirement
-      margin: EdgeInsets.all(8.0),
+      margin: const EdgeInsets.all(8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            color: Color(0xFF00008B), // Set background color to indigo
+            color: const Color(0xFF00008B), // Set background color to indigo
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
@@ -98,7 +98,7 @@ class _PaymentState extends State<Payment> {
         children: [
           Container(
             padding: const EdgeInsets.all(12.0), // Adjust padding for more space around the icon
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
               color: Color(0xFF00008B), // Indigo color for the circle
             ),
@@ -109,18 +109,17 @@ class _PaymentState extends State<Payment> {
               color: null, // Preserve original colors by setting color to null
             ),
           ),
-          SizedBox(width: 16.0), // Initial space after the first icon
+          const SizedBox(width: 16.0), // Initial space after the first icon
           Expanded(
             child: Text(
               label,
-              style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold), // Adjust font size as needed
+              style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold), // Adjust font size as needed
             ),
           ),
         ],
       ),
     );
   }
-
 }
 
 void main() {

@@ -28,13 +28,12 @@ class _ChildInfoPageState extends State<ChildInfoPage>
     );
     fetchData();
   }
-
   Future<void> fetchData() async {
     setState(() {
       _isLoading = true; // Set _isLoading to true when data fetching starts
     });
     final url = Uri.parse(
-        'https://staging.smartschoolplus.co.in/webservice/sspmobileservice.asmx/UserRegister?SchoolCode=TESTLAKE&sUsername=12516&sPassword=12516');
+        'https://staging.smartschoolplus.co.in/webservice/sspmobileservice.asmx/UserRegister?SchoolCode=TESTLAKE&sUsername=PAY2&sPassword=PAY2');
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);

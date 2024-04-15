@@ -37,6 +37,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: Scaffold(
+        appBar: CustomAppBar(),
         body: GridViewIcons(),
         bottomNavigationBar: BottomNavigationBarWithSlideAnimation(),
       ),
@@ -65,33 +66,33 @@ class GridViewIcons extends StatelessWidget {
     'assets/images/youtubechannel.png',
     'assets/images/admitcard.png',
     'assets/images/communication.png',
+    'assets/images/feereceipt.png',
     'assets/images/newpolicy.png',
     'assets/images/payment.png',
-    'assets/images/feereceipt.png',
   ];
 
   final List<Widget> screens = [
-    const ChildInfoPage(),
-    const MedicalRecordspage(),
+    ChildInfoPage(),
+    MedicalRecordspage(),
     HomeworkScreen(),
-    const Attendance(),
+    AttendanceScreen(),
     Remark(),
-    const ClassTimeTable(),
+    ClassTimeTable(),
     ExamTimetable(),
-    const ExamSyllabus(),
-    const ExamResults(),
+    ExamSyllabus(),
+    ExamResults(),
     Calendar(),
-    const leaverequest(),
+    leaverequest(),
     GalleryScreen(),
     NotificationPage(),
     CircularCard(),
-    const PassengerDetails(),
+    PassengerDetails(),
     PrincipalAppointmentMessage(),
-    const Youtube(),
-    const AdmitCard(),
-    const Fee(),
-    const Payment(),
-    const Communication(),
+    Youtube(),
+    AdmitCard(),
+    Fee(),
+    Payment(),
+    Communication(),
     NewPolicy(),
   ];
   final List<Color> cardColors = [
@@ -128,108 +129,99 @@ class GridViewIcons extends StatelessWidget {
     'New Policy',
     // Add more titles as needed
   ];
-  final double imageSize = 32.0; // Adjust image size
-  final double cardSize = 55.0; // Adjust card size
-  final double titleSpace = 1.0; // Adjust space between card and title
+
+  // Constants for sizes and spacing
+  static const double imageSize = 32.0;
+  static const double cardSize = 55.0;
+  static const double titleSpace = 1.0;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-              ),
-              itemCount: imageAssets.length,
-              itemBuilder: (BuildContext context, int index) {
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => screens[index]),
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      Card(
-                        elevation: 2.3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50.0),
-                        ),
-                        color: cardColors[index % cardColors.length],
-                        child: Container(
-                          width: cardSize,
-                          height: cardSize,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(50.0),
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                cardColors[index % cardColors.length].withOpacity(0.5), // lighter color
-                                cardColors[index % cardColors.length], // original color
-                              ],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
-                                spreadRadius: 2,
-                                blurRadius: 5,
-                                offset: Offset(0, 3), // changes position of shadow
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Image.asset(
-                              imageAssets[index],
-                              width: imageSize,
-                              height: imageSize,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: titleSpace),
-                      Text(
-                        screenTitles[index],
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+      ),
+      itemCount: imageAssets.length,
+      itemBuilder: (BuildContext context, int index) {
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => screens[index]),
+            );
+          },
+          child: Column(
+            children: [
+              Card(
+                elevation: 2.3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(cardSize / 2),
+                ),
+                color: cardColors[index % cardColors.length],
+                child: Container(
+                  width: cardSize,
+                  height: cardSize,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(cardSize / 2),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        cardColors[index % cardColors.length].withOpacity(0.5), // lighter color
+                        cardColors[index % cardColors.length], // original color
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: Offset(0, 3), // changes position of shadow
                       ),
                     ],
                   ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+                  child: Center(
+                    child: Image.asset(
+                      imageAssets[index],
+                      width: imageSize,
+                      height: imageSize,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: titleSpace),
+              Text(
+                screenTitles[index],
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const Text(
+      title: Text(
         'DASHBOARD',
         style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
       ),
-      backgroundColor: const Color(0xFF00008B),
+      backgroundColor: Color(0xFF00008B),
       actions: <Widget>[
         IconButton(
-          icon: const Icon(Icons.refresh, color:Colors.white),
-          onPressed: () {
-          },
+          icon: Icon(Icons.refresh, color: Colors.white),
+          onPressed: () {},
         ),
         IconButton(
-          icon: const Icon(Icons.timeline, color:Colors.white),
+          icon: Icon(Icons.timeline, color: Colors.white),
           onPressed: () {
             // Functionality for navigating to another class
             Navigator.push(
@@ -239,28 +231,28 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           },
         ),
         IconButton(
-          icon: const Icon(Icons.logout, color:Colors.white),
+          icon: Icon(Icons.logout, color: Colors.white),
           onPressed: () {
             // Functionality for logging out
             showDialog(
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  title: const Text("Logout"),
-                  content: const Text("Are you sure you want to logout?"),
+                  title: Text("Logout"),
+                  content: Text("Are you sure you want to logout?"),
                   actions: <Widget>[
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).pop(); // Close dialog
                       },
-                      child: const Text("No"),
+                      child: Text("No"),
                     ),
                     TextButton(
                       onPressed: () {
                         // Perform logout functionality here
                         Navigator.of(context).pop(); // Close dialog
                       },
-                      child: const Text("Yes"),
+                      child: Text("Yes"),
                     ),
                   ],
                 );
@@ -275,19 +267,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 class BottomNavigationBarWithSlideAnimation extends StatefulWidget {
   @override
-  _BottomNavigationBarWithSlideAnimationState createState() =>
-      _BottomNavigationBarWithSlideAnimationState();
+  _BottomNavigationBarWithSlideAnimationState createState() => _BottomNavigationBarWithSlideAnimationState();
 }
 
-class _BottomNavigationBarWithSlideAnimationState
-    extends State<BottomNavigationBarWithSlideAnimation> {
+class _BottomNavigationBarWithSlideAnimationState extends State<BottomNavigationBarWithSlideAnimation> {
   int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       currentIndex: _selectedIndex,
-      backgroundColor: const Color(0xFF00008B), // Dark blue color code
+      backgroundColor: Color(0xFF00008B), // Dark blue color code
       selectedItemColor: Colors.white, // Set selected icon and label color to white
       unselectedItemColor: Colors.white, // Set unselected icon and label color to white
       onTap: (int index) {

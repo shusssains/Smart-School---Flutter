@@ -95,7 +95,7 @@ class _ExamTimetableState extends State<ExamTimetable> {
           ),
         ],
       ),
-      backgroundColor: const Color(0xFF00008B),
+      //backgroundColor: const Color(0xFF00008B),
       body: isLoading
           ? const Center(
         child: CircularProgressIndicator(
@@ -138,11 +138,15 @@ class _ExamTimetableState extends State<ExamTimetable> {
           );
         },
       ),
+      bottomNavigationBar: Container(
+        color: const Color(0xFF00008B), // Blue color for the footer
+        height: 50, // Adjust the height as needed
+      ),
     );
   }
   Widget timetableInfo(String imagePath, String text) {
     return Container(
-      color: const Color(0xFF00008B),
+      //color: const Color(0xFF00008B),
       padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
       child: Row(
         children: [
@@ -151,7 +155,7 @@ class _ExamTimetableState extends State<ExamTimetable> {
             padding: const EdgeInsets.all(5.0),
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white,
+              color: const Color(0xFF00008B),
             ),
             child: Image.asset(imagePath, width: 30, height: 30),
           ),
@@ -160,7 +164,7 @@ class _ExamTimetableState extends State<ExamTimetable> {
             child: Text(
               text,
               style: const TextStyle(
-                color: Colors.white,
+                color: Colors.black,
                 fontWeight: FontWeight.bold,
                 fontSize: 16.0,
               ),

@@ -58,7 +58,7 @@ class _ExamResultsState extends State<ExamResults> {
         ),
         centerTitle: true,
       ),
-      backgroundColor: Color(0xFF00008B),
+      //backgroundColor: Color(0xFF00008B),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -196,6 +196,12 @@ class _ExamResultsState extends State<ExamResults> {
               ),
             ),
           ],
+        ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: Color(0xFF00008B),
+        child: Container(
+          height: 50.0, // Adjust the height as needed
         ),
       ),
     );

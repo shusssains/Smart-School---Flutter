@@ -1,158 +1,209 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class ExamSyllabus extends StatefulWidget {
-  const ExamSyllabus({Key? key}) : super(key: key);
-
   @override
-  State<ExamSyllabus> createState() => _ExamSyllabusState();
+  _ExamSyllabusState createState() => _ExamSyllabusState();
+}
+
+class Exam {
+  final String examId;
+  final String examName;
+  final String isActive;
+
+  Exam({required this.examId, required this.examName, required this.isActive});
+
+  factory Exam.fromJson(Map<String, dynamic> json) {
+    return Exam(
+      examId: json['Exam Id'],
+      examName: json['Exam Name'],
+      isActive: json['Is Active'],
+    );
+  }
+}
+
+class Syllabus {
+  final int classId;
+  final String className;
+  final int subjectId;
+  final String subject;
+  final String subjectCode;
+  final String exam;
+  final String groupName;
+  final String activity;
+  final String portionDate;
+  final String portion;
+  final String fileName;
+  final String photoPath;
+
+  Syllabus({
+    required this.classId,
+    required this.className,
+    required this.subjectId,
+    required this.subject,
+    required this.subjectCode,
+    required this.exam,
+    required this.groupName,
+    required this.activity,
+    required this.portionDate,
+    required this.portion,
+    required this.fileName,
+    required this.photoPath,
+  });
+
+  factory Syllabus.fromJson(Map<String, dynamic> json) {
+    return Syllabus(
+      classId: json['CLASSID'],
+      className: json['Class'],
+      subjectId: json['SUBJECTID'],
+      subject: json['Subject'],
+      subjectCode: json['SUBJECTCODE'],
+      exam: json['EXAM'],
+      groupName: json['GROUPNAME'],
+      activity: json['ACTIVITY'],
+      portionDate: json['PORTIONDATE'],
+      portion: json['PORTION'],
+      fileName: json['FILENAME'],
+      photoPath: json['PHOTOPATH'],
+    );
+  }
 }
 
 class _ExamSyllabusState extends State<ExamSyllabus> {
-  String dropdownValue = 'Quarterly Exam';
+  String selectedExam = '';
+  List<Exam> exams = [];
+  List<Syllabus> syllabusList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchExams();
+    fetchSyllabus();
+  }
+
+  Future<void> fetchExams() async {
+    final response = await http.get(Uri.parse(
+        'https://test.smartschoolplus.co.in/WebService/SSPMobileService.asmx/GetAllExamName?SchoolCode=TESTLAKE&Classid=1'));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['Status Code'] == '01') {
+        setState(() {
+          exams = (data['Exam Name'] as List)
+              .map((json) => Exam.fromJson(json))
+              .toList();
+          selectedExam = exams.isNotEmpty ? exams[0].examName : '';
+        });
+      }
+    }
+  }
+
+  Future<void> fetchSyllabus() async {
+    final response = await http.get(Uri.parse(
+        'https://test.smartschoolplus.co.in/WebService/SSPMobileService.asmx/GetExamSyllabus?SchoolCode=TESTLAKE&Classid=1&StudentId=3414&Groupid=15'));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['Status Code'] == '01') {
+        setState(() {
+          syllabusList = (data['SYLLABUS'] as List)
+              .map((json) => Syllabus.fromJson(json))
+              .toList();
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: Text(
+          'EXAM SYLLABUS',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20.0,
+          ),
+        ),
+        centerTitle: true,
         backgroundColor: Color(0xFF00008B),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.pop(context);
           },
         ),
         actions: [
           IconButton(
             icon: Icon(Icons.refresh, color: Colors.white),
             onPressed: () {
-              // Implement your refresh functionality here
+              //refreshData();
             },
           ),
         ],
-        title: const Text(
-          'EXAM TIMETABLE',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
       ),
-      backgroundColor: const Color(0xFF00008B),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Search the subjects here',
-                hintStyle: const TextStyle(color: Colors.white),
-                border: OutlineInputBorder( // Add an outline border
-                  borderSide: BorderSide(color: Colors.white.withOpacity(0.5)), // Set the border color to light white
-                ),
-              ),
-              style: const TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: MediaQuery.of(context).size.width, // Set the width of the dropdown
-              child: DropdownButton<String>(
-                value: dropdownValue,
-                underline: Container(), // Remove the default underline
-                dropdownColor: const Color(0xFF00008B), // Set the dropdown background color
-                style: const TextStyle(color: Colors.white), // Set the default text color to white
-                onChanged: (String? newValue) {
-                  setState(() {
-                    dropdownValue = newValue!;
-                  });
-                },
-                items: <String>[
-                  'Quarterly Exam',
-                  'Half-Yearly Exam',
-                  'Annual Exam',
-                  'Mid Term Test'
-                ].map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.white.withOpacity(0.5)), // Add an outline border
+      body: Column(
+        children: [
+          DropdownButton<String>(
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 17.5, ),
+            value: selectedExam,
+            onChanged: (value) {
+              setState(() {
+                selectedExam = value!;
+              });
+            },
+            items: exams.map((exam) {
+              return DropdownMenuItem<String>(
+                value: exam.examName,
+                child: Text(exam.examName),
+              );
+            }).toList(),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: syllabusList.length,
+              itemBuilder: (context, index) {
+                final syllabus = syllabusList[index];
+                if (syllabus.exam == selectedExam) {
+                  return Card(
+                    elevation: 10,
+                    //color: Color(0xFF00008B),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    child: ListTile(
+                      leading: Image.asset(
+                        'assets/images/subject.png',
+                        width: 55,
+                        height: 55,
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12), // Add padding
-                      child: Text(
-                        value,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: Colors.white, // Set text color to white
+                      title: Text(
+                        syllabus.subject,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                        ),
+                      ),
+                      subtitle: Text(
+                        syllabus.activity,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
                         ),
                       ),
                     ),
                   );
-                }).toList(),
-              ),
+                } else {
+                  return const SizedBox.shrink();
+                }
+              },
             ),
-
-            SizedBox(height: 10),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: List.generate(5, (index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10.0),
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // First Row: Subject
-                              Row(
-                                children: [
-                                  Image.asset(
-                                    'assets/images/subject.png', // Icon for subject
-                                    width: 26,
-                                    height: 26,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text('Maths ${index + 1}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),),
-                                ],
-                              ),
-                              SizedBox(height: 16),
-                              // Second Row: Syllabus
-                              Row(
-                                children: [
-                                  Image.asset(
-                                    'assets/images/syllabus.png', // Icon for syllabus
-                                    width: 26,
-                                    height: 26,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text('Read, Write ${index + 1}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),),
-                                ],
-                              ),
-                              SizedBox(height: 8), // Add spacing between the two rows
-                            ],
-                          ),
-                        ),
-                      ),
-
-                    );
-                  }),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color(0xFF00008B),
+        child: Container(height: 50.0),
       ),
     );
   }

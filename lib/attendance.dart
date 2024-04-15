@@ -1,229 +1,121 @@
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-void main() {
-  runApp(MaterialApp(
-    home: Attendance(),
-  ));
-}
-
-class Attendance extends StatefulWidget {
-  const Attendance({Key? key}) : super(key: key);
-
+class AttendanceScreen extends StatefulWidget {
   @override
-  State<Attendance> createState() => _AttendanceState();
+  _AttendanceScreenState createState() => _AttendanceScreenState();
 }
 
-class _AttendanceState extends State<Attendance> {
-  late CalendarFormat _calendarFormat;
-  late DateTime _focusedDay;
-  late DateTime _selectedDay;
+class _AttendanceScreenState extends State<AttendanceScreen> {
+  List<Map<String, dynamic>> apiData = [];
+  bool isLoading = false;
 
+  Future<void> fetchData() async {
+    try {
+      final response1 = await http.get(Uri.parse(
+          'https://test.smartschoolplus.co.in/WebService/SSPMobileService.asmx/GetAttendance?SchoolCode=TESTLAKE&StudentId=3414'));
+      final response2 = await http.get(Uri.parse(
+          'https://test.smartschoolplus.co.in/WebService/SSPMobileService.asmx/GetStudentMonthWiseAttendance?SchoolCode=TESTLAKE&StudentId=3414&Month=05&MonthStartDate=01/05/2023&MonthEndDate=31/05/2023'));
+
+      final data1 = json.decode(response1.body);
+      final data2 = json.decode(response2.body);
+
+      setState(() {
+        apiData = [data1 ?? {}, data2 ?? {}]; // Null check added
+      });
+    } catch (error) {
+      print('Error fetching data: $error');
+    }
+  }
+
+  Future<void> refreshData() async {
+    setState(() {
+      isLoading = true;
+    });
+    await Future.delayed(const Duration(seconds: 1)); // Adding a delay of 2 seconds
+    fetchData();
+  }
   @override
   void initState() {
     super.initState();
-    _focusedDay = DateTime.now();
-    _selectedDay = DateTime.now();
-    _calendarFormat = CalendarFormat.month;
+    fetchData(); // Fetch data when the widget initializes
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF00008B),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: Colors.white),
-            onPressed: () {
-              // Implement your refresh functionality here
-            },
-          ),
-        ],
-        title: Text(
+        title: const Text(
           'ATTENDANCE',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
+            fontSize: 20.0, // Increase the font size
           ),
         ),
         centerTitle: true,
-      ),
-      backgroundColor: Color(0xFF00008B),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildMonthCard(),
-            _buildCalendarCard(),
-            _buildSummaryCard(),
-          ],
+        backgroundColor: const Color(0xFF00008B),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
-      ),
-    );
-  }
-
-  Widget _buildMonthCard() {
-    return Card(
-      elevation: 4.0,
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              'AUGUST 2024',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildField('Working Days:', '22'),
-              _buildField('Present Days:', '20'),
-              _buildField('Absent Days:', '2'),
-            ],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            onPressed: () {
+              refreshData();
+            },
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildField(String title, String value) {
-    return Flexible(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              title,
-              style: TextStyle(color: Colors.black),
-            ),
-            Text(
-              value,
-              style: TextStyle(color: Colors.black),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCalendarCard() {
-    return Card(
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              'AUGUST 2024',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+      body: ListView.builder(
+        itemCount: apiData.length,
+        itemBuilder: (context, index) {
+          final workingDayDetails = apiData[index]['WorkingDayDetails']?[0] ?? {}; // Null check added
+          return Card(
+            elevation: 13,
+            margin: const EdgeInsets.all(10),
+            child: Padding(
+              padding: const EdgeInsets.all(15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    color: const Color(0xFF00008B),
+                    child: Text(
+                      'Total Working Days: ${workingDayDetails["TotalWorkingDays"] ?? ''}', // Null check added
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Student Absent Days: ${workingDayDetails["StudentAbsentDays"] ?? ''}', // Null check added
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Student Working Days: ${workingDayDetails["StudentWorkingDays"] ?? ''}', // Null check added
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          Container(
-            height: 270, // Adjust the height as needed
-            child: _buildTableCalendar(),
-          ),
-        ],
+          );
+        },
       ),
-    );
-  }
-
-  Widget _buildTableCalendar() {
-    final startDayOfMonth =
-    DateTime.utc(_focusedDay.year, _focusedDay.month, 1);
-    final endDayOfMonth =
-    DateTime.utc(_focusedDay.year, _focusedDay.month + 1, 0);
-
-    return SingleChildScrollView(
-      child: SizedBox(
-        height: 300, // Adjust the height as needed
-        child: TableCalendar(
-          firstDay: startDayOfMonth,
-          lastDay: endDayOfMonth,
-          focusedDay: _focusedDay,
-          calendarFormat: _calendarFormat,
-          onFormatChanged: (format) {
-            setState(() {
-              _calendarFormat = format;
-            });
-          },
-          onPageChanged: (focusedDay) {
-            setState(() {
-              _focusedDay = focusedDay;
-            });
-          },
-          selectedDayPredicate: (day) {
-            return isSameDay(day, _selectedDay);
-          },
-          onDaySelected: (selectedDay, focusedDay) {
-            setState(() {
-              _selectedDay = selectedDay;
-              _focusedDay = focusedDay;
-            });
-          },
-          calendarStyle: CalendarStyle(
-            selectedDecoration: BoxDecoration(
-              color: Color(0xFF00008B),
-              shape: BoxShape.circle,
-            ),
-            todayDecoration: BoxDecoration(
-              color: Color(0xFF00008B).withOpacity(0.5),
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard() {
-    return Card(
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              'AUGUST 2024',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildField('Working Days:', '22'),
-              _buildField('Present Days:', '20'),
-              _buildField('Absent Days:', '2'),
-            ],
-          ),
-        ],
+      bottomNavigationBar: Container(
+        color: const Color(0xFF00008B), // Blue color for the footer
+        height: 50, // Adjust the height as needed
       ),
     );
   }
 }
-
-
