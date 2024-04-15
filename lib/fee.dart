@@ -1,14 +1,123 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_pdfview/flutter_pdfview.dart';
+
+class AcademicYear {
+  final String academicYear;
+  final String academicYearId;
+
+  AcademicYear({required this.academicYear, required this.academicYearId});
+
+  factory AcademicYear.fromJson(Map<String, dynamic> json) {
+    return AcademicYear(
+      academicYear: json['ACADEMICYEAR'],
+      academicYearId: json['ACADEMICYEARID'],
+    );
+  }
+}
+
+class FeeDetails {
+  final String studentId;
+  final String paymentMode;
+  final String amount;
+  final String receiptNo;
+  final String transactionId;
+  final String academicYear;
+  final String frequencyName;
+  final String paymentDate;
+
+  FeeDetails({
+    required this.studentId,
+    required this.paymentMode,
+    required this.amount,
+    required this.receiptNo,
+    required this.transactionId,
+    required this.academicYear,
+    required this.frequencyName,
+    required this.paymentDate,
+  });
+
+  factory FeeDetails.fromJson(Map<String, dynamic> json) {
+    return FeeDetails(
+      studentId: json['STUDENTID'],
+      paymentMode: json['PAYMENTMODE'],
+      amount: json['AMOUNT'],
+      receiptNo: json['RECEIPTNO'],
+      transactionId: json['TRANSACTIONID'],
+      academicYear: json['ACADEMICYEAR'],
+      frequencyName: json['FREQUENCYNAME'],
+      paymentDate: json['PAYMENTDATE'],
+    );
+  }
+}
 
 class Fee extends StatefulWidget {
-  const Fee({Key? key}) : super(key: key);
-
   @override
-  State<Fee> createState() => _FeeState();
+  _FeeState createState() => _FeeState();
 }
 
 class _FeeState extends State<Fee> {
-  String? selectedYear; // Default selected year
+  int? pdfPage = 0;
+  String selectedAcademicYear = '';
+  List<AcademicYear> academicYears = [];
+  List<FeeDetails> feeDetailsList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchAcademicYears();
+    fetchFeeDetails();
+  }
+
+  void openPdfPage(String pdfUrl) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(title: const Text('PDF Viewer')),
+          body: PDFView(
+            filePath: pdfUrl,
+            onPageChanged: (page, total) {
+              setState(() {
+                pdfPage = page;
+              });
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> fetchAcademicYears() async {
+    final response = await http.get(Uri.parse('https://test.smartschoolplus.co.in/WebService/SSPMobileService.asmx/GetStudentFeePaidACYear?SchoolCode=TESTLAKE&StudentId=3414'));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['Status Code'] == '01') {
+        setState(() {
+          academicYears = (data['ACADEMICYEAR'] as List)
+              .map((json) => AcademicYear.fromJson(json))
+              .toList();
+          selectedAcademicYear =
+          academicYears.isNotEmpty ? academicYears[0].academicYear : '';
+        });
+      }
+    }
+  }
+
+  Future<void> fetchFeeDetails() async {
+    final response = await http.get(Uri.parse('https://test.smartschoolplus.co.in/WebService/SSPMobileService.asmx/GetReceiptWiseStudentFeePaidDetails?SchoolCode=TESTLAKE&StudentId=3414&Academicyear=2023'));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['Status Code'] == '01') {
+        setState(() {
+          feeDetailsList = (data['FEEDETAILS'] as List)
+              .map((json) => FeeDetails.fromJson(json))
+              .toList();
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +138,7 @@ class _FeeState extends State<Fee> {
             },
           ),
         ],
-        title: const Text(
+        title: Text(
           'FEE RECEIPT',
           style: TextStyle(
             color: Colors.white,
@@ -38,125 +147,123 @@ class _FeeState extends State<Fee> {
         ),
         centerTitle: true,
       ),
-      backgroundColor: const Color(0xFF00008B),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            margin: EdgeInsets.all(8.0),
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.indigo), // Set border color to indigo
-              borderRadius: BorderRadius.circular(4.0), // Optional: Set border radius
-            ),
-            child: DropdownButton<String>(
-              value: selectedYear,
-              hint: Text('Select the year of payment status',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),), // Placeholder text
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedYear = newValue!;
-                });
+          DropdownButton<String>(
+            style: const TextStyle(color: Colors.black),
+            value: selectedAcademicYear,
+            onChanged: (value) {
+              setState(() {
+                selectedAcademicYear = value!;
+              });
+            },
+            items: academicYears.map((academicYear) {
+              return DropdownMenuItem<String>(
+                value: academicYear.academicYear,
+                child: Text(academicYear.academicYear),
+              );
+            }).toList(),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: feeDetailsList.length,
+              itemBuilder: (context, index) {
+                final feeDetail = feeDetailsList[index];
+                if (feeDetail.academicYear == selectedAcademicYear) {
+                  return Card(
+                    elevation: 20,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+                    child: ListTile(
+                      title: RichText(
+                        text: TextSpan(
+                          text: 'FREQUENCY NAME :',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text:   feeDetail.frequencyName,
+                              style: const TextStyle(color: Colors.black,),
+                            ),
+                          ],
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 17.0),
+                          Row(
+                            children: [
+                              Image.asset('assets/images/amount.png', width: 24, height: 24),
+                              const SizedBox(width: 8),
+                              Text(
+                                'AMOUNT                   : ${feeDetail.amount}',
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 17.0),
+                          Row(
+                            children: [
+                              Image.asset('assets/images/date.png', width: 24, height: 24),
+                              const SizedBox(width: 8),
+                              Text(
+                                'DATE                          : ${feeDetail.paymentDate}',
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 17.0),
+                          Row(
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  openPdfPage('https://docs.apryse.com/samples/web/samples/full-apis/ViewerCustomSaveTest/ViewerCustomSaveTest.js'); // Replace with your PDF URL
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  foregroundColor: Colors.white, backgroundColor: const Color(0xFF00008B),// foreground
+                                ),
+                                icon: Image.asset('assets/images/view.png', width: 24, height: 24),
+                                label: Text('View Receipt'),
+                              ),
+                              const SizedBox(width: 20),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  openPdfPage('https://docs.apryse.com/samples/web/samples/full-apis/ViewerCustomSaveTest/ViewerCustomSaveTest.js'); // Replace with your PDF URL
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  foregroundColor: Colors.white, backgroundColor: const Color(0xFF00008B), // foreground
+                                ),
+                                icon: Image.asset('assets/images/download.png', width: 24, height: 24),
+                                label: Text('Download Receipt'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                } else {
+                  return const SizedBox.shrink();
+                }
               },
-              items: <String>['2022', '2023']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value,
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildTermCard('Term 1'),
-                  _buildTermCard('Term 2'),
-                ],
-              ),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTermCard(String term) {
-    return Card(
-      elevation: 4, // Adjust elevation as per your requirement
-      margin: EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            color:Color(0xFF00008B),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Center(
-                child: Text(
-                  '${selectedYear ?? 'SELECTED YEAR'} - $term',
-                  style: const TextStyle(
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white, // Text color
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8.0, width: 12),
-          _buildRow('Amount: 300', 'assets/images/amount.png'),
-          // SizedBox(height: 4, ),
-          _buildRow('Paid by: Online Payment', 'assets/images/paid.png'),
-          // SizedBox(height: 4, ),
-          _buildRow('Date: 14-03-2024', 'assets/images/date.png'),
-          // SizedBox(height: 4, ),
-          _buildRow('Download: View and download the receipt', 'assets/images/download.png'),
-          // SizedBox(height: 4, ),
-        ],
+      bottomNavigationBar: BottomAppBar(
+        color: Color(0xFF00008B),
+        child: Container(
+          height: 50.0, // Adjust the height as needed
+        ),
       ),
     );
   }
-
-  Widget _buildRow(String label, String iconPath) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12.0), // Adjust padding for more space around the icon
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFF00008B), // Indigo color for the circle
-            ),
-            child: Image.asset(
-              iconPath,
-              width: 24.0,
-              height: 24.0,
-              color: null, // Preserve original colors by setting color to null
-            ),
-          ),
-          SizedBox(width: 16.0), // Additional space between icon and text
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold), // Adjust font size as needed
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: Fee(),
-  ));
 }

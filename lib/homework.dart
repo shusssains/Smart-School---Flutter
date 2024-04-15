@@ -24,7 +24,7 @@ class _HomeworkScreenState extends State<HomeworkScreen> {
       isLoading = true;
     });
     try {
-      final response = await http.get(Uri.parse('https://staging.smartschoolplus.co.in/Webservice/SSPMobileService.asmx/GetAllHomework?SchoolCode=TESTLAKE&ClassId=81&HomeworkDate='));
+      final response = await http.get(Uri.parse('https://staging.smartschoolplus.co.in/Webservice/SSPMobileService.asmx/GetAllHomework?SchoolCode=TESTLAKE&ClassId=1&HomeworkDate='));
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
         List<dynamic> homeWork = jsonData['HomeWork'];
@@ -92,7 +92,7 @@ class _HomeworkScreenState extends State<HomeworkScreen> {
           ),
         ],
       ),
-      backgroundColor: const Color(0xFF00008B),
+      //backgroundColor: const Color(0xFF00008B),
       body: isLoading
           ? const Center(
         child: CircularProgressIndicator(
@@ -134,6 +134,10 @@ class _HomeworkScreenState extends State<HomeworkScreen> {
             ),
           );
         },
+      ),
+      bottomNavigationBar: Container(
+        color: const Color(0xFF00008B), // Blue color for the footer
+        height: 50, // Adjust the height as needed
       ),
     );
   }
